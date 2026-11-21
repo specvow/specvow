@@ -72,6 +72,8 @@ const ROOT_NOISE = new Set([
   "buildRequest",
   "fetchWithTimeout",
   "withOptions",
+  "getAPIList",
+  "requestAPIList",
 ]);
 
 function walk(cls: ClassDeclaration, prefix: string, depth: number, seen: Set<ClassDeclaration>, out: SdkMethod[]): void {

@@ -183,6 +183,30 @@ describe("classify", () => {
     });
     expect(findings.filter((finding) => finding.level === "breaking")).toEqual([]);
   });
+
+  it("accepts a path parameter that Stainless nests in the params object", () => {
+    const operation: SpecOperation = {
+      operationId: "deleteApiKey",
+      method: "delete",
+      path: "/projects/{id}/api-key/{apiKeyId}",
+      params: [
+        { name: "id", location: "path" },
+        { name: "apiKeyId", location: "path" },
+      ],
+    };
+    const sdk = method("beta.projects.apiKey.delete", [
+      { name: "apiKeyID", optional: false, fields: [] },
+      { name: "params", optional: false, fields: [{ name: "id", optional: false }] },
+      { name: "options", optional: true, fields: [] },
+    ]);
+    const findings = classify({
+      operations: [operation],
+      methods: [sdk],
+      matches: [{ method: sdk.name, operationId: operation.operationId, via: "map" }],
+      lock: null,
+    });
+    expect(findings.filter((finding) => finding.level === "breaking")).toEqual([]);
+  });
 });
 
 describe("stainless.yml", () => {

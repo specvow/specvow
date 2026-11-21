@@ -30,22 +30,46 @@ function satisfiesName(method: SdkMethod, param: SpecParam, skip: SdkParam | und
   return false;
 }
 
+function pathNames(param: SpecParam): string[] {
+  return [param.name, param.sdkName].filter((name): name is string => Boolean(name));
+}
+
 function missingPathParams(method: SdkMethod, operation: SpecOperation): string[] {
-  const used = new Set<SdkParam>();
+  const usedParams = new Set<SdkParam>();
+  const usedFields = new Set<string>();
   const missing: string[] = [];
+
   for (const param of operation.params.filter((item) => item.location === "path")) {
+    const names = pathNames(param);
     const found = method.params.find(
-      (item) =>
-        !item.optional &&
-        !used.has(item) &&
-        (sameName(item.name, param.name) || (param.sdkName !== undefined && sameName(item.name, param.sdkName))),
+      (item) => !item.optional && !usedParams.has(item) && names.some((name) => sameName(item.name, name)),
     );
-    if (found) used.add(found);
-    else missing.push(param.name);
+    if (found) {
+      usedParams.add(found);
+      continue;
+    }
+
+    const nested = method.params.some((item) => {
+      if (item.optional) return false;
+      return item.fields.some((field) => {
+        if (field.optional) return false;
+        const key = `${item.name}.${field.name}`;
+        if (usedFields.has(key) || !names.some((name) => sameName(field.name, name))) return false;
+        usedFields.add(key);
+        return true;
+      });
+    });
+    if (!nested) missing.push(param.name);
   }
+
   if (missing.length !== 1) return missing;
   const spare = method.params.find(
-    (item) => !item.optional && !used.has(item) && item.fields.length === 0 && item.name !== "options" && !BODY_NAMES.has(item.name),
+    (item) =>
+      !item.optional &&
+      !usedParams.has(item) &&
+      item.fields.length === 0 &&
+      item.name !== "options" &&
+      !BODY_NAMES.has(item.name),
   );
   return spare ? [] : missing;
 }
