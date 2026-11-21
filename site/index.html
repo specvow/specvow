@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpecVow — the spec makes a promise. The SDK has to keep it.</title>
+  <meta name="description" content="SpecVow checks a published TypeScript SDK against its OpenAPI spec and fails CI when a locked method would break.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231b1915'/%3E%3Cpath d='M8 17.5 13.2 23 24 10' fill='none' stroke='%23f4f1ea' stroke-width='2.4'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #1b1915;
+      --muted: #4a453d;
+      --rule: #d8d1c4;
+      --paper: #f4f1ea;
+      --break: #8c2f2a;
+      --code: #161513;
+      --code-ink: #f4f1ea;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--paper); color: var(--ink); }
+
+    body {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      font-size: 1.125rem;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(40rem, calc(100% - 2.5rem));
+      margin: 0 auto;
+      padding: 4.5rem 0 3.5rem;
+    }
+
+    .mark {
+      margin: 0 0 1.75rem;
+      font-family: Consolas, "SFMono-Regular", ui-monospace, monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 7vw, 3.75rem);
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      margin: 1.5rem 0 0;
+      max-width: 34rem;
+      color: var(--muted);
+    }
+
+    .actions { margin: 1.75rem 0 0; }
+
+    a {
+      color: var(--ink);
+      text-underline-offset: 0.18em;
+    }
+
+    a:focus-visible {
+      outline: 2px solid var(--break);
+      outline-offset: 3px;
+    }
+
+    section {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--rule);
+    }
+
+    h2 {
+      margin: 0 0 0.9rem;
+      font-family: Consolas, "SFMono-Regular", ui-monospace, monospace;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    p { margin: 0; }
+
+    .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      margin: 0 0 0.7rem;
+      padding-left: 1rem;
+      text-indent: -1rem;
+    }
+
+    li::before { content: "– "; color: var(--break); }
+
+    pre {
+      margin: 0;
+      padding: 1.1rem 1.15rem;
+      overflow-x: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      font-family: Consolas, "SFMono-Regular", ui-monospace, monospace;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: Consolas, "SFMono-Regular", ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+
+    .result { margin-top: 0.75rem; }
+    .after { margin-top: 0.9rem; }
+    .result .bad { color: #e7b2ae; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-family: Consolas, "SFMono-Regular", ui-monospace, monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 640px) {
+      main { padding-top: 2.75rem; }
+      .pair { grid-template-columns: 1fr; gap: 1.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="mark">SpecVow</p>
+    <h1>The spec makes a promise.<br>The SDK has to keep it.</h1>
+    <p class="lede">SpecVow checks a published TypeScript SDK against its OpenAPI spec. When a pull request would break a locked method, CI fails. It does not generate a new SDK.</p>
+    <p class="actions"><a href="https://github.com/specvow/specvow">Read the source</a></p>
+
+    <section>
+      <h2>On a pull request</h2>
+      <pre><code>- uses: specvow/specvow@main
+  with:
+    config: specvow.config.yaml</code></pre>
+      <pre class="result"><code><span class="bad">Breaking</span>
+  billing.invoices.create now requires `currency`
+
+<span class="bad">exit 2</span></code></pre>
+      <p class="after">Exit 2 fails the job. An operation with no method stays in the log and does not fail it.</p>
+    </section>
+
+    <section class="pair">
+      <div>
+        <h2>Fails the job</h2>
+        <ul>
+          <li>A locked method is gone.</li>
+          <li>The spec now requires a path or query parameter the method does not.</li>
+          <li>The spec now requires a body, or a top-level body field, the method does not.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Does not</h2>
+        <ul>
+          <li>An operation that has no SDK method.</li>
+          <li>An SDK method that has no operation.</li>
+          <li>Nested object fields. Python is not read yet.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Stainless</h2>
+      <p>Pass <code>stainless.yml</code>. SpecVow pairs each method with the endpoint the generator published, including a path parameter nested in the params object. <code>find_by_status</code> lines up with <code>pets.findByStatus</code>.</p>
+    </section>
+
+    <footer>TypeScript · MIT · specvow.com</footer>
+  </main>
+</body>
+</html>
