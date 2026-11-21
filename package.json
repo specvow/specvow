@@ -1,0 +1,34 @@
+{
+  "name": "specvow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Check that a published TypeScript SDK still matches its OpenAPI spec.",
+  "type": "module",
+  "bin": {
+    "specvow": "./dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/specvow/specvow.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "specvow": "tsx src/cli/cli.ts",
+    "example": "tsx src/cli/cli.ts check --config examples/billing/specvow.config.yaml",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run && tsc --noEmit"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "ts-morph": "^25.0.1",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}

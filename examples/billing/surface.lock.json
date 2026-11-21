@@ -1,0 +1,39 @@
+{
+  "specvow": 1,
+  "client": "Client",
+  "methods": [
+    {
+      "name": "billing.invoices.create",
+      "operationId": "createInvoice",
+      "http": "post /invoices",
+      "params": [
+        {
+          "name": "body",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "billing.invoices.get",
+      "operationId": "getInvoice",
+      "http": "get /invoices/{id}",
+      "params": [
+        {
+          "name": "id",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "name": "billing.invoices.list",
+      "operationId": "listInvoices",
+      "http": "get /invoices",
+      "params": [
+        {
+          "name": "query",
+          "optional": true
+        }
+      ]
+    }
+  ]
+}

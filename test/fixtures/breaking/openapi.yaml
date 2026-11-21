@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Billing
+  version: 1.0.0
+paths:
+  /invoices:
+    post:
+      operationId: createInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency
+              properties:
+                amount:
+                  type: number
+                currency:
+                  type: string

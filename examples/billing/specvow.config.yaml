@@ -1,0 +1,4 @@
+spec: ./openapi.yaml
+sdk: ./sdk/index.ts
+client: Client
+lock: ./surface.lock.json
