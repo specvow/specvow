@@ -3,6 +3,7 @@ import { classify } from "../src/core/classify.js";
 import { buildLock } from "../src/core/lock.js";
 import { matchSurface } from "../src/core/match.js";
 import { operationsFromDocument } from "../src/core/openapi.js";
+import { methodMapFromStainless } from "../src/core/stainless.js";
 import type { SdkMethod, SpecOperation } from "../src/core/types.js";
 
 const billingDoc = {
@@ -70,6 +71,24 @@ describe("operationsFromDocument", () => {
     expect(get?.params.map((param) => `${param.location}:${param.name}`)).toEqual(["path:id"]);
     expect(list?.params).toEqual([]);
   });
+
+  it("keeps the Stainless parameter name", () => {
+    const operations = operationsFromDocument({
+      paths: {
+        "/user/{username}": {
+          put: {
+            operationId: "updateUser",
+            parameters: [
+              { name: "username", in: "path", required: true, "x-stainless-param": "existingUsername" },
+            ],
+          },
+        },
+      },
+    });
+    expect(operations[0]?.params).toEqual([
+      { name: "username", location: "path", sdkName: "existingUsername" },
+    ]);
+  });
 });
 
 describe("matchSurface", () => {
@@ -126,5 +145,79 @@ describe("classify", () => {
     const remaining = billingMethods.filter((item) => item.name !== "billing.invoices.get");
     const findings = classify({ operations, methods: remaining, matches: [], lock });
     expect(findings.map((finding) => finding.code)).toContain("removed-method");
+  });
+
+  it("treats petID as the petId path parameter", () => {
+    const operation: SpecOperation = {
+      operationId: "deletePet",
+      method: "delete",
+      path: "/pet/{petId}",
+      params: [{ name: "petId", location: "path" }],
+    };
+    const sdk = method("pets.delete", [{ name: "petID", optional: false, fields: [] }]);
+    const findings = classify({
+      operations: [operation],
+      methods: [sdk],
+      matches: [{ method: sdk.name, operationId: operation.operationId, via: "map" }],
+      lock: null,
+    });
+    expect(findings.filter((finding) => finding.level === "breaking")).toEqual([]);
+  });
+
+  it("accepts a renamed path argument when it is the only spare parameter", () => {
+    const operation: SpecOperation = {
+      operationId: "updateUser",
+      method: "put",
+      path: "/user/{username}",
+      params: [{ name: "username", location: "path" }],
+    };
+    const sdk = method("users.update", [
+      { name: "existingUsername", optional: false, fields: [] },
+      { name: "body", optional: true, fields: [{ name: "email", optional: true }] },
+    ]);
+    const findings = classify({
+      operations: [operation],
+      methods: [sdk],
+      matches: [{ method: sdk.name, operationId: operation.operationId, via: "map" }],
+      lock: null,
+    });
+    expect(findings.filter((finding) => finding.level === "breaking")).toEqual([]);
+  });
+});
+
+describe("stainless.yml", () => {
+  it("maps resource methods by endpoint, including nested resources and id casing", () => {
+    const operations: SpecOperation[] = [
+      { operationId: "addPet", method: "post", path: "/pet", params: [] },
+      { operationId: "findPetsByStatus", method: "get", path: "/pet/findByStatus", params: [] },
+      { operationId: "updatePetWithForm", method: "post", path: "/pet/{petId}", params: [] },
+      { operationId: "placeOrder", method: "post", path: "/store/order", params: [] },
+    ];
+    const { map, errors } = methodMapFromStainless(
+      {
+        resources: {
+          pets: {
+            methods: {
+              create: "post /pet",
+              find_by_status: "get /pet/findByStatus",
+              update_by_id: "post /pet/{petId}",
+            },
+          },
+          store: {
+            subresources: {
+              orders: { methods: { create: "post /store/order" } },
+            },
+          },
+        },
+      },
+      operations,
+    );
+    expect(errors).toEqual([]);
+    expect(map).toEqual({
+      "pets.create": "addPet",
+      "pets.findByStatus": "findPetsByStatus",
+      "pets.updateByID": "updatePetWithForm",
+      "store.orders.create": "placeOrder",
+    });
   });
 });

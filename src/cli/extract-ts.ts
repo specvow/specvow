@@ -58,6 +58,22 @@ function classFromType(type: ReturnType<PropertyDeclaration["getType"]>): ClassD
   return symbol.getDeclarations().find((declaration): declaration is ClassDeclaration => Node.isClassDeclaration(declaration));
 }
 
+const ROOT_NOISE = new Set([
+  "get",
+  "post",
+  "put",
+  "patch",
+  "delete",
+  "head",
+  "options",
+  "trace",
+  "request",
+  "buildURL",
+  "buildRequest",
+  "fetchWithTimeout",
+  "withOptions",
+]);
+
 function walk(cls: ClassDeclaration, prefix: string, depth: number, seen: Set<ClassDeclaration>, out: SdkMethod[]): void {
   if (seen.has(cls) || depth > 4) return;
   seen.add(cls);
@@ -66,7 +82,10 @@ function walk(cls: ClassDeclaration, prefix: string, depth: number, seen: Set<Cl
     if (method.isStatic()) continue;
     const scope = method.getScope();
     if (scope === "private" || scope === "protected") continue;
-    const name = prefix ? `${prefix}.${method.getName()}` : method.getName();
+    const methodName = method.getName();
+    if (methodName.startsWith("#") || methodName.startsWith("_")) continue;
+    if (!prefix && ROOT_NOISE.has(methodName)) continue;
+    const name = prefix ? `${prefix}.${methodName}` : methodName;
     out.push({
       name,
       params: method.getParameters().map(toParam),

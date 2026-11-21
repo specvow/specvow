@@ -66,6 +66,14 @@ map:
   billing.invoices.add: createInvoice
 ```
 
+A Stainless project can pass `stainless.yml` instead. SpecVow reads each method's endpoint and finds the operation with that HTTP method and path. `find_by_status` lines up with `pets.findByStatus`, and `update_by_id` with `pets.updateByID`.
+
+```yaml
+stainless: ./stainless.yml
+```
+
+The same file can be passed with `--stainless`. An entry in `map` wins when both name the same method.
+
 Commit the lockfile. In CI, run `check`. Run `lock` only when the SDK change is intentional. A missing locked method is a breaking change.
 
 ## Pull requests

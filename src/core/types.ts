@@ -3,6 +3,8 @@ export type SpecLocation = "path" | "query" | "header" | "cookie" | "body" | "fi
 export type SpecParam = {
   name: string;
   location: SpecLocation;
+  /** Name the SDK uses when it differs from the spec, such as Stainless `x-stainless-param`. */
+  sdkName?: string;
 };
 
 export type SpecOperation = {

@@ -13,6 +13,7 @@ type ParameterObject = {
   name?: string;
   in?: string;
   required?: boolean;
+  "x-stainless-param"?: string;
 };
 
 type RequestBodyObject = {
@@ -54,7 +55,11 @@ function requiredParams(parameters: ParameterObject[] | undefined): SpecParam[] 
       continue;
     }
     if (location === "path" || parameter.required === true) {
-      params.push({ name: parameter.name, location });
+      params.push({
+        name: parameter.name,
+        location,
+        sdkName: typeof parameter["x-stainless-param"] === "string" ? parameter["x-stainless-param"] : undefined,
+      });
     }
   }
   return params;

@@ -7,6 +7,7 @@ export type CliFlags = {
   sdk?: string;
   client?: string;
   lock?: string;
+  stainless?: string;
   config?: string;
   format: string;
   out?: string;
@@ -17,6 +18,7 @@ export type ResolvedConfig = {
   sdk: string;
   client: string;
   lock?: string;
+  stainless?: string;
   map: Record<string, string>;
   format: string;
   out?: string;
@@ -27,6 +29,7 @@ type RawConfig = {
   sdk?: string;
   client?: string;
   lock?: string;
+  stainless?: string;
   language?: string;
   map?: Record<string, string>;
 };
@@ -74,6 +77,11 @@ export async function resolveConfig(cwd: string, flags: CliFlags): Promise<Resol
     sdk: path.resolve(base, sdk),
     client: flags.client ?? raw.client ?? "Client",
     lock: flags.lock ? path.resolve(cwd, flags.lock) : raw.lock ? path.resolve(base, raw.lock) : undefined,
+    stainless: flags.stainless
+      ? path.resolve(cwd, flags.stainless)
+      : raw.stainless
+        ? path.resolve(base, raw.stainless)
+        : undefined,
     map,
     format: flags.format,
     out: flags.out ? path.resolve(cwd, flags.out) : raw.lock ? path.resolve(base, raw.lock) : path.resolve(cwd, "surface.lock.json"),

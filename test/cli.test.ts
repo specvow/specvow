@@ -36,6 +36,11 @@ describe("TypeScript surface", () => {
     ]);
   });
 
+  it("ignores transport helpers on the root client", () => {
+    const methods = extractTypeScriptSurface(path.join(root, "test/fixtures/transport/sdk.ts"), "Client");
+    expect(methods.map((method) => method.name)).toEqual(["pets.create"]);
+  });
+
   it("honors an @operation tag", async () => {
     const methods = extractTypeScriptSurface(path.join(root, "test/fixtures/tagged/sdk.ts"), "Client");
     const operations = await loadSpec(path.join(root, "examples/billing/openapi.yaml"));
