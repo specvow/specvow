@@ -68,6 +68,26 @@ map:
 
 Commit the lockfile. In CI, run `check`. Run `lock` only when the SDK change is intentional. A missing locked method is a breaking change.
 
+## Pull requests
+
+Check out the repository, then run the action. `config` is the path inside that repository.
+
+```yaml
+name: specvow
+on:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: specvow/specvow@main
+        with:
+          config: specvow.config.yaml
+```
+
+The report is written to the job log and to the workflow summary. Exit code 2 fails the job. Gaps stay visible and do not fail it.
+
 ## Exit codes
 
 | Code | Meaning |

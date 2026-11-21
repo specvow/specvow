@@ -1,0 +1,51 @@
+name: SpecVow
+description: Fail the check when a TypeScript SDK breaks its OpenAPI spec.
+branding:
+  icon: shield
+  color: gray-dark
+inputs:
+  config:
+    description: Path to specvow.config.yaml, relative to the repository root.
+    required: false
+    default: ""
+  spec:
+    description: OpenAPI file. Use this with sdk when there is no config file.
+    required: false
+    default: ""
+  sdk:
+    description: TypeScript SDK entry file or directory.
+    required: false
+    default: ""
+  client:
+    description: Client class name. Defaults to Client.
+    required: false
+    default: ""
+  lock:
+    description: Lockfile path. Overrides the path in the config file.
+    required: false
+    default: ""
+  format:
+    description: text, markdown, or json.
+    required: false
+    default: markdown
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Build SpecVow
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci && npm run build
+    - name: Check the SDK against the spec
+      shell: bash
+      env:
+        SPECVOW_CONFIG: ${{ inputs.config }}
+        SPECVOW_SPEC: ${{ inputs.spec }}
+        SPECVOW_SDK: ${{ inputs.sdk }}
+        SPECVOW_CLIENT: ${{ inputs.client }}
+        SPECVOW_LOCK: ${{ inputs.lock }}
+        SPECVOW_FORMAT: ${{ inputs.format }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/action-check.sh"

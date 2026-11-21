@@ -5,7 +5,7 @@
   "description": "Check that a published TypeScript SDK still matches its OpenAPI spec.",
   "type": "module",
   "bin": {
-    "specvow": "./dist/cli.js"
+    "specvow": "./dist/cli/cli.js"
   },
   "repository": {
     "type": "git",
