@@ -20,14 +20,26 @@ function readEndpoint(value: unknown): Endpoint | undefined {
   return { http: match[1].toLowerCase(), path: route };
 }
 
+function withIdAcronym(part: string, index: number): string {
+  if (part.toLowerCase() === "id") return index === 0 ? "id" : "ID";
+  const words = part.match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+/g);
+  if (!words) return part;
+  return words
+    .map((word, wordIndex) => {
+      if (word.toLowerCase() !== "id") return word;
+      return index === 0 && wordIndex === 0 ? "id" : "ID";
+    })
+    .join("");
+}
+
 /** Stainless method and resource names as they appear on a TypeScript client. */
 export function stainlessTypeScriptName(snake: string): string {
   const parts = snake.split("_").filter((part) => part.length > 0);
   return parts
     .map((part, index) => {
-      if (part.toLowerCase() === "id") return index === 0 ? "id" : "ID";
-      if (index === 0) return part;
-      return part.charAt(0).toUpperCase() + part.slice(1);
+      const named = withIdAcronym(part, index);
+      if (index === 0) return named;
+      return named.charAt(0).toUpperCase() + named.slice(1);
     })
     .join("");
 }

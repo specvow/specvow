@@ -239,6 +239,7 @@ describe("stainless.yml", () => {
       { operationId: "addPet", method: "post", path: "/pet", params: [] },
       { operationId: "findPetsByStatus", method: "get", path: "/pet/findByStatus", params: [] },
       { operationId: "updatePetWithForm", method: "post", path: "/pet/{petId}", params: [] },
+      { operationId: "getPet", method: "get", path: "/pet/{petId}", params: [] },
       { operationId: "placeOrder", method: "post", path: "/store/order", params: [] },
     ];
     const { map, errors } = methodMapFromStainless(
@@ -249,6 +250,7 @@ describe("stainless.yml", () => {
               create: "post /pet",
               find_by_status: "get /pet/findByStatus",
               update_by_id: "post /pet/{petId}",
+              getById: "get /pet/{petId}",
             },
           },
           store: {
@@ -265,6 +267,7 @@ describe("stainless.yml", () => {
       "pets.create": "addPet",
       "pets.findByStatus": "findPetsByStatus",
       "pets.updateByID": "updatePetWithForm",
+      "pets.getByID": "getPet",
       "store.orders.create": "placeOrder",
     });
   });
