@@ -28,6 +28,10 @@ inputs:
     description: text, markdown, or json.
     required: false
     default: markdown
+  token:
+    description: Token used to post the report on the pull request. Pass an empty string to skip the comment.
+    required: false
+    default: ${{ github.token }}
 runs:
   using: composite
   steps:
@@ -48,4 +52,9 @@ runs:
         SPECVOW_CLIENT: ${{ inputs.client }}
         SPECVOW_LOCK: ${{ inputs.lock }}
         SPECVOW_FORMAT: ${{ inputs.format }}
+        SPECVOW_TOKEN: ${{ inputs.token }}
+        SPECVOW_EVENT: ${{ github.event_name }}
+        SPECVOW_PR: ${{ github.event.pull_request.number }}
+        SPECVOW_REPO: ${{ github.repository }}
+        SPECVOW_API: ${{ github.api_url }}
       run: bash "$GITHUB_ACTION_PATH/scripts/action-check.sh"

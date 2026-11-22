@@ -84,6 +84,9 @@ Check out the repository, then run the action. `config` is the path inside that 
 name: specvow
 on:
   pull_request:
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -94,7 +97,7 @@ jobs:
           config: specvow.config.yaml
 ```
 
-The report is written to the job log and to the workflow summary. Exit code 2 fails the job. Gaps stay visible and do not fail it.
+The report is written to the job log, the workflow summary, and one comment on the pull request. Later runs update that comment. Exit code 2 fails the job. Gaps stay visible and do not fail it. Pass `token: ""` to skip the comment.
 
 ## Exit codes
 

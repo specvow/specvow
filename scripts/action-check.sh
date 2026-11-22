@@ -34,4 +34,5 @@ printf '%s\n' "$output"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   printf '%s\n' "$output" >> "$GITHUB_STEP_SUMMARY"
 fi
+printf '%s' "$output" | node "$GITHUB_ACTION_PATH/scripts/pr-comment.mjs" || true
 exit "$code"
