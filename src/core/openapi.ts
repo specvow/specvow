@@ -46,7 +46,24 @@ function asDocument(value: unknown): OpenApiDocument {
   return value as OpenApiDocument;
 }
 
-function requiredParams(parameters: ParameterObject[] | undefined): SpecParam[] {
+function authHeaderNames(document: unknown): Set<string> {
+  const names = new Set<string>();
+  if (!isRecord(document) || !isRecord(document.components) || !isRecord(document.components.securitySchemes)) {
+    return names;
+  }
+  for (const scheme of Object.values(document.components.securitySchemes)) {
+    if (!isRecord(scheme)) continue;
+    if (scheme.type === "apiKey" && scheme.in === "header" && typeof scheme.name === "string") {
+      names.add(scheme.name.toLowerCase());
+    }
+    if (scheme.type === "http" && (scheme.scheme === "bearer" || scheme.scheme === "basic")) {
+      names.add("authorization");
+    }
+  }
+  return names;
+}
+
+function requiredParams(parameters: ParameterObject[] | undefined, authHeaders: Set<string>): SpecParam[] {
   const params: SpecParam[] = [];
   for (const parameter of parameters ?? []) {
     if (!parameter.name || !parameter.in) continue;
@@ -54,6 +71,7 @@ function requiredParams(parameters: ParameterObject[] | undefined): SpecParam[] 
     if (location !== "path" && location !== "query" && location !== "header" && location !== "cookie") {
       continue;
     }
+    if (location === "header" && authHeaders.has(parameter.name.toLowerCase())) continue;
     if (location === "path" || parameter.required === true) {
       params.push({
         name: parameter.name,
@@ -85,12 +103,13 @@ function mergeParams(base: SpecParam[], extra: SpecParam[]): SpecParam[] {
 
 export function operationsFromDocument(document: unknown): SpecOperation[] {
   const doc = asDocument(document);
+  const authHeaders = authHeaderNames(document);
   const operations: SpecOperation[] = [];
   const seen = new Set<string>();
 
   for (const [route, item] of Object.entries(doc.paths ?? {})) {
     if (!item) continue;
-    const pathParams = requiredParams(item.parameters);
+    const pathParams = requiredParams(item.parameters, authHeaders);
     for (const method of HTTP_METHODS) {
       const operation = item[method];
       if (!operation) continue;
@@ -104,7 +123,7 @@ export function operationsFromDocument(document: unknown): SpecOperation[] {
         method,
         path: route,
         params: mergeParams(pathParams, [
-          ...requiredParams(operation.parameters),
+          ...requiredParams(operation.parameters, authHeaders),
           ...bodyParams(operation.requestBody),
         ]),
       });

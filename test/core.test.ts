@@ -89,6 +89,30 @@ describe("operationsFromDocument", () => {
       { name: "username", location: "path", sdkName: "existingUsername" },
     ]);
   });
+
+  it("leaves an API key header off the method when a security scheme already names it", () => {
+    const operations = operationsFromDocument({
+      components: {
+        securitySchemes: {
+          "X-API-Key": { type: "apiKey", in: "header", name: "X-API-Key" },
+          Bearer: { type: "http", scheme: "bearer" },
+        },
+      },
+      paths: {
+        "/user": {
+          post: {
+            operationId: "createUser",
+            parameters: [
+              { name: "X-API-Key", in: "header", required: true },
+              { name: "Authorization", in: "header", required: true },
+              { name: "X-Request-Id", in: "header", required: true },
+            ],
+          },
+        },
+      },
+    });
+    expect(operations[0]?.params.map((param) => param.name)).toEqual(["X-Request-Id"]);
+  });
 });
 
 describe("matchSurface", () => {
